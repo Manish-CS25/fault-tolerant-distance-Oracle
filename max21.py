@@ -115,7 +115,6 @@ def intact_from_failure_path(path, F):
             return False
 
     return True
-
 def intact_from_failure_tree(T, F):
     # Check if F is empty
     if T is None:
@@ -144,7 +143,6 @@ def intact_from_failure_tree(T, F):
             return False
 
     return True
-
 def single_edge_in_path(p, F2):
     if p is not None:
         p_edges = [(p[i], p[i + 1]) for i in range(len(p) - 1)]
@@ -171,43 +169,43 @@ def remove_duplicates(lst):
     return result
 
 
-def maximizer2(G, x, y, V, d2):
-    G = G.copy()
 
+
+def maximizer21(G, x, y, d1, V):
+    G = G.copy()
     max_xy_edge = None
     max_xy_path = None
     max_xy_distance = float("-inf")
     max_xy_path_new = None
 
 
-    possible_edges = combinations(list(G.edges) , 2);
+    possible_edges = combinations(list(G.edges) , 2)
     for F_star in possible_edges:
-        eu , ev = F_star[0]
+        eu , ev = F_star[0];
         eu1 , ev1 = F_star[1]
- 
-        Vx_path = shortest_paths[(V, x)]
-        txV = txu_dict[(x, V)]  
         if (
             nx.has_path(G, x, eu1)
             and nx.has_path(G, y, ev1)
             and (
-                D[y][ev1] >= d2  and D[y][ev] >= d2 and D[y][ev1] >= d2 and D[y][ev] >= d2
+                D[x][eu1] >= d1  and D[x][eu] >= d1 and D[x][ev1] >= d1 and D[x][ev] >= d1
             )
-            and (intact_from_failure_path(Vx_path, F_star)
-            and intact_from_failure_tree(txV, F_star))
-        ):  
-            edge1_data = G.get_edge_data(eu , ev)
+            and intact_from_failure_path(shortest_paths[(V, y)], F_star)
+            and intact_from_failure_tree(txu_dict[(y, V)], F_star)
+        ):
+            edge1_data = G.get_edge_data(eu, ev)    
             edge2_data = G.get_edge_data(eu1, ev1)
+            
             G.remove_edge(eu, ev)
-            G.remove_edge(eu1, ev1)
+            G.remove_edge(eu1, ev1) 
             if not nx.has_path(G, x, y):
-                G.add_edge(eu1, ev1, **edge2_data)
                 G.add_edge(eu, ev, **edge1_data)
+                G.add_edge(eu1, ev1, **edge2_data)
                 continue
 
             path2 = nx.dijkstra_path(G, x, y, weight="weight")
             path2_distance = sum(
-                get_edge_weight(G, path2[i], path2[i + 1]) for i in range(len(path2) - 1)
+                get_edge_weight(G, path2[i], path2[i + 1])
+                for i in range(len(path2) - 1)
             )
             if path2_distance > max_xy_distance:
                 max_xy_edge = [(eu, ev), (eu1, ev1)]
@@ -215,7 +213,6 @@ def maximizer2(G, x, y, V, d2):
                 max_xy_distance = path2_distance
 
             G.add_edge(eu1, ev1, **edge2_data)
-
             G.add_edge(eu, ev, **edge1_data)
 
     if max_xy_path is not None:
@@ -248,11 +245,10 @@ def maximizer2(G, x, y, V, d2):
 
 
 
-
 # Initialize a dictionary to store the maximizer output
-maximizer_dict2 = {}
+maximizer_dict21 = {}
 
-maximizer_function = maximizer2
+maximizer_function = maximizer21
 
 # Collect errors to print after the loop
 errors = []
@@ -260,14 +256,14 @@ errors = []
 start_time = time.time()
 
 # Define a function to process a single pair of nodes
-def process_pair(G, x, y, V, d2):
+def process_pair(G, x, y, d1, v):
     try:
-        result = maximizer_function(G, x, y, V, d2)
+        result = maximizer_function(G, x, y, d1, v)
         max_edge, max_path = result
-        return (x, y, V, d2), (max_edge, max_path)
+        return (x, y, d1, v), (max_edge, max_path)
     except nx.NetworkXNoPath:
-        print(f"Error processing pair ({x}, {y}, {V}, {d2}): No path found")
-        return (x, y, V, d2), None
+        print(f"Error processing pair ({x}, {y}, {d1}, {v}): No path found")
+        return (x, y, d1, v), None
 
 # Ensure G is copied for thread safety
 G = G.copy()
@@ -295,27 +291,27 @@ for x in nodes:
                         else:
                             F_star_vertex = [vertex for E in F_star for vertex in E]
                     for v in F_star_vertex:
-                        tasks.append((x, y, v, d2))
+                        tasks.append((x, y, d1, v))
                         
 
 tasks = list(set(tasks))  # Remove duplicates
 # Use ProcessPoolExecutor to parallelize the computation
 with ProcessPoolExecutor(max_workers=num_cores) as executor:
-    futures = {executor.submit(process_pair, G, x, y, V, d2): (x, y, V, d2) for x, y, V, d2 in tasks}
+    futures = {executor.submit(process_pair, G, x, y, d1, v): (x, y, d1, v) for x, y, d1, v in tasks}
     for future in tqdm(as_completed(futures), total=len(futures), desc="Processing pairs"):
 
         pair_key, result = future.result()
 
         max_edge, max_path = result
-        maximizer_dict2[pair_key] = (max_edge, max_path)
+        maximizer_dict21[pair_key] = (max_edge, max_path)
         print(f"Pair: {pair_key}, Max Edge: {max_edge}, Max Path: {max_path}")
 
             
 
 
 # Save the results
-with open('maximizer_dict2.pkl', 'wb') as f:
-    pickle.dump(maximizer_dict2, f)
+with open('maximizer_dict21.pkl', 'wb') as f:
+    pickle.dump(maximizer_dict21, f)
 
-logging.info("Results saved to maximizer_dict2.pkl")
+logging.info("Results saved to maximizer_dict21.pkl")
 logging.info(f"Total execution time: {time.time() - start_time:.2f} seconds")
