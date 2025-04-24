@@ -39,7 +39,7 @@ def bfs_tree_of_S_rooted_x(graph, s, x):
 txu_dict = {}   
 for x in G.nodes:
     for u in G.nodes:
-        bfs_tree_nodes = bfs_tree_of_S_rooted_x(G, u, x)   
+        bfs_tree_nodes = bfs_tree_of_S_rooted_x(G, x, u)  
         if bfs_tree_nodes is not None:
             txu_dict[(x, u)] = bfs_tree_nodes
         else:
