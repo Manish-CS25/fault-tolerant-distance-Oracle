@@ -19,7 +19,7 @@ class Edge:
 # Load G and D from the local files
 with open('graph.pkl', 'rb') as f:
     G = pickle.load(f)
-with open('distances.pkl', 'rb') as f:
+with open('D.pkl', 'rb') as f:
     D = pickle.load(f)
 with open('shortest_paths.pkl', 'rb') as f:
     shortest_paths = pickle.load(f) 
