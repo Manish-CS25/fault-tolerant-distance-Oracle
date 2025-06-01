@@ -1,6 +1,7 @@
 import heapq
 import networkx as nx
 import pickle
+import time
 
 with open('graph.pkl', 'rb') as f:  
     G = pickle.load(f)
@@ -36,10 +37,11 @@ def bfs_tree_of_S_rooted_x(graph, s, x):
         # print(f"Node {x} is not in the BFS tree rooted at {s}")
         return None
     
+time_taken = time.time()
 txu_dict = {}   
 for x in G.nodes:
     for u in G.nodes:
-        bfs_tree_nodes = bfs_tree_of_S_rooted_x(G, x, u)  
+        bfs_tree_nodes = bfs_tree_of_S_rooted_x(G, x , u)   
         if bfs_tree_nodes is not None:
             txu_dict[(x, u)] = bfs_tree_nodes
         else:
@@ -48,6 +50,14 @@ for x in G.nodes:
 # Save the dictionary to a file
 with open('txu_dict.pkl', 'wb') as f:
     pickle.dump(txu_dict, f)
+time_taken = time.time() - time_taken
+with open('processing_times.txt', 'a') as f:
+    f.write(f"Time taken to compute BFS trees: {time_taken:.2f} seconds\n")
+
+print(f"Time taken to compute BFS trees: {time_taken:.2f} seconds")
+
+    
+
     
             
 

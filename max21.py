@@ -7,12 +7,8 @@ import os
 import logging
 from itertools import combinations
 import math
+from math import isclose
 
-class Edge:
-    def __init__(self, u, v, weight):
-        self.u = u
-        self.v = v
-        self.weight = weight
 
 
 
@@ -37,7 +33,7 @@ with open('txu_dict.pkl', 'rb') as f:
 
 
 
-def nearest_power_of_2(x):
+def floor_power_of_2(x):
     if x <= 0:
         return 0 # Return 1 for non-positive input
     elif math.isinf(x):
@@ -45,12 +41,7 @@ def nearest_power_of_2(x):
     else:
         return 2 ** math.floor(math.log2(x))
     
-    
-def get_edge_weight(G, u, v):
-    if G.has_edge(u, v):
-        return G[u][v].get('weight', float('inf'))  # Provide a default value if 'weight' is missing
-    else:
-        return float('inf')
+
 
 def find_max_distance(G, distance_oracle):
     max_distance = float("-inf")
@@ -62,7 +53,7 @@ def find_max_distance(G, distance_oracle):
     
 max_d_value = int(find_max_distance(G, D))
 d1_d2_list = [0]
-i = nearest_power_of_2((max_d_value))
+i = floor_power_of_2((max_d_value))
 
 
 while i >= 1:
@@ -71,50 +62,34 @@ while i >= 1:
 # print(max_d_value)
 
 
-
-
-
-
-def edge_in_path(p, F2):
-    if len(p) < 2:
-        return False
-    p_edges = [(p[i], p[i+ 1]) for i in range(len(p) - 1)]
-    for edge in F2:
-        if (edge.u ,edge.v) in p_edges or (edge.v , edge.u) in p_edges:
-            return True
-    return False
-
-
 def intact_from_failure_path(path, F):
     if path is None:
-        return False
+        return True
+    if len(path)==1:
+        return True
 
-    path_edges = [(path[i], path[i + 1]) for i in range(len(path) - 1)]
-    # print(f"F: {F}")
+    path_dist = D[path[0]][path[-1]]
 
     if len(F) == 0:
         return True
 
-    if isinstance(F, list) and len(F) == 2 and all(isinstance(x, int) for x in F):
-        if (F[0], F[1]) in path_edges or (F[1], F[0]) in path_edges:
-            return False
-        return True
 
     for edge in F:
-        if isinstance(edge, tuple):
-            if (edge[0], edge[1]) in path_edges or (edge[1], edge[0]) in path_edges:
-                return False
-        elif isinstance(edge, list):
-            if (edge[0], edge[1]) in path_edges or (edge[1], edge[0]) in path_edges:
-                return False
-        elif hasattr(edge, 'u') and hasattr(edge, 'v'):
-            if (edge.u, edge.v) in path_edges or (edge.v, edge.u) in path_edges:
-                return False
-        else:
-            print(f"Unexpected edge type: {type(edge)}")
+        u, v = edge[0], edge[1]
+        wt = G[u][v]["weight"] 
+
+        if (
+            isclose(D[path[0]][u] + wt + D[path[-1]][v], path_dist) or
+            isclose(D[path[0]][v] + wt + D[path[-1]][u], path_dist)
+        ):
             return False
 
     return True
+
+
+
+
+
 def intact_from_failure_tree(T, F):
     # Check if F is empty
     if T is None:
@@ -122,51 +97,25 @@ def intact_from_failure_tree(T, F):
         return True
     if not F:
         return True
-    
-    if isinstance(F, list) and len(F) == 2 and all(isinstance(x, int) for x in F):
-        if F[0] in T or F[1] in T:
-            return False
-        return True
+
 
     # Check if any vertex in F is in the tree T
     for edge in F:
         # Unpack edge into u and v
-        if isinstance(edge, Edge):
-            u, v = edge.u, edge.v
-        elif isinstance(edge, tuple) or isinstance(edge, list):
-            u, v = edge
-        else:
-            print(f"Unexpected edge type: {type(edge)}")
-            return False
+        u, v = edge[0], edge[1]
 
         if u in T or v in T:
             return False
 
     return True
-def single_edge_in_path(p, F2):
-    if p is not None:
-        p_edges = [(p[i], p[i + 1]) for i in range(len(p) - 1)]
-        
-        for edge in F2:
-            # unpack edge into u and v
-            if isinstance(edge, Edge):
-                u, v = edge.u, edge.v
-            else:
-                u,v = edge
-            # check if the edge is in the path
-            if (u, v) in p_edges or (v, u) in p_edges:
-                return True
-        return False
+
+
+
+
+
     
 
-def remove_duplicates(lst):
-    seen = set()
-    result = []
-    for item in lst:
-        if item not in seen:
-            seen.add(item)
-            result.append(item)
-    return result
+
 
 
 
@@ -184,9 +133,10 @@ def maximizer21(G, x, y, d1, V):
         eu , ev = F_star[0];
         eu1 , ev1 = F_star[1]
         if (
-            nx.has_path(G, x, eu1)
-            and nx.has_path(G, y, ev1)
-            and (
+            # nx.has_path(G, x, eu1)
+            # and nx.has_path(G, y, ev1)
+            # and 
+            (
                 D[x][eu1] >= d1  and D[x][eu] >= d1 and D[x][ev1] >= d1 and D[x][ev] >= d1
             )
             and intact_from_failure_path(shortest_paths[(V, y)], F_star)
@@ -202,11 +152,9 @@ def maximizer21(G, x, y, d1, V):
                 G.add_edge(eu1, ev1, **edge2_data)
                 continue
 
-            path2 = nx.dijkstra_path(G, x, y, weight="weight")
-            path2_distance = sum(
-                get_edge_weight(G, path2[i], path2[i + 1])
-                for i in range(len(path2) - 1)
-            )
+            path2_distance, path2 = nx.single_source_dijkstra(G, x, y, weight="weight")
+
+
             if path2_distance > max_xy_distance:
                 max_xy_edge = [(eu, ev), (eu1, ev1)]
                 max_xy_path = path2
@@ -215,31 +163,68 @@ def maximizer21(G, x, y, d1, V):
             G.add_edge(eu1, ev1, **edge2_data)
             G.add_edge(eu, ev, **edge1_data)
 
-    if max_xy_path is not None:
-        s = 0
-        max_xy_path_new = []
-        for i in range(len(max_xy_path) - 1):
-            u = max_xy_path[s]
-            v = max_xy_path[i + 1]
-            uv_distance = D[u][v]
-            uv_distance_path = sum(
-                get_edge_weight(G, max_xy_path[j], max_xy_path[j + 1])
-                for j in range(s, i + 1)
-            )
-            if uv_distance != uv_distance_path:
-                if i < (len(max_xy_path) - 2):
-                    s_to_a_path = [u]
-                    intermediate_edge = (v, max_xy_path[i + 2])
-                    s_to_a_path.append(max_xy_path[i])
-                    max_xy_path_new.append(s_to_a_path)
-                    max_xy_path_new.append(intermediate_edge)
-                    s = i + 2
-        max_xy_path_new.append([u, max_xy_path[len(max_xy_path) - 1]])
-        if len(max_xy_path_new) == 1:
-            max_xy_path_new = [max_xy_path]
-        if len(max_xy_path_new) == 3:
-            max_xy_path_new = [max_xy_path]
+    if max_xy_path is None or len(max_xy_path) < 2:
+        return max_xy_edge, []
 
+    s = 0  # Start index of current subpath
+    max_xy_path_new = []
+    deviations_found = 0  # Counter for deviations
+
+    i = 0
+    while i < len(max_xy_path) - 1 and deviations_found < 2:
+        u = max_xy_path[s]
+        v = max_xy_path[i + 1]
+        
+        # Direct shortest path distance
+        uv_distance = D[u][v]
+        
+        # Path distance along max_xy_path from u to v
+        uv_path_distance = sum(
+            G[max_xy_path[j]][max_xy_path[j + 1]]['weight']
+            for j in range(s, i + 1)
+        )
+
+        
+        # Check if path deviates from shortest path
+        if uv_distance < uv_path_distance:
+            deviations_found += 1
+            # Define nodes for the deviation
+            s_node = max_xy_path[s]  # Start of current subpath
+            a = max_xy_path[i] if i > s else s_node  # Node before deviation
+            b = v  # Deviation node
+            
+            if deviations_found == 1:
+                # First deviation: store [s, a], (a, b)
+                first_s_to_a = [s_node, a]  # Subpath from start to a
+                first_a_to_b = (a, b)  # First deviating edge
+                # Update start index to b for next subpath
+                s = i + 1
+            elif deviations_found == 2:
+                # Second deviation: store [b_prev, c], (c, d), [d, t]
+                # b_prev is the b from the first deviation
+                c = a  # Node before second deviation
+                d = b  # Second deviation node
+                t = max_xy_path[-1]  # End node
+                b_to_c = [first_a_to_b[1], c]  # Subpath from first b to c
+                c_to_d = (c, d)  # Second deviating edge
+                d_to_t = [d, t]  # Subpath from d to t
+                # Construct the full output
+                max_xy_path_new = [first_s_to_a, first_a_to_b, b_to_c, c_to_d, d_to_t]
+                break
+        
+        i += 1
+    
+    # If fewer than 2 deviations were found
+    if deviations_found < 2:
+        if deviations_found == 1:
+            # Only one deviation: construct [s, a], (a, b), [b, t]
+            t = max_xy_path[-1]
+            b_to_t = [first_a_to_b[1], t]
+            max_xy_path_new = [first_s_to_a, first_a_to_b, b_to_t]
+        else:
+            # No deviations: return original path wrapped in a list
+            max_xy_path_new = [max_xy_path[0], max_xy_path[-1]] 
+    
     return max_xy_edge, max_xy_path_new
 
 
@@ -313,5 +298,15 @@ with ProcessPoolExecutor(max_workers=num_cores) as executor:
 with open('maximizer_dict21.pkl', 'wb') as f:
     pickle.dump(maximizer_dict21, f)
 
-logging.info("Results saved to maximizer_dict21.pkl")
-logging.info(f"Total execution time: {time.time() - start_time:.2f} seconds")
+end_time = time.time()
+execution_time = end_time - start_time
+
+with open('processing_times.txt', 'a') as f:
+    f.write(f"Processing time for maximizer21: {execution_time} seconds\n")
+
+print("Maximizer dictionary saved to maximizer_dict21.pkl")
+
+print(f"Execution time: {execution_time} seconds")
+
+
+

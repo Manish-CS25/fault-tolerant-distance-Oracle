@@ -1,0 +1,28 @@
+Graph processing time: 0.010062 seconds
+Dijkstra processing time: 0.028894 seconds
+Shortest paths processing time: 0.032774 seconds
+Time taken to compute BFS trees: 1.13 seconds
+Maximizer processing Time without multiProcessing: 306.164827 seconds
+Maximizer Execution time with multiprocessing: 149.79942083358765 seconds
+Sequential time: 850.57 seconds for 1000 iterations
+multiProcessing time: 26.89 seconds for 1000 iterations
+Speedup: 31.63x
+
+Time Taken to process Maximizer1: 3868.876312 seconds
+Processing time for maximizer21: 4802.854574918747 seconds
+Maximizer2 Processing Time: 5114.834411621094 seconds
+Maximizer3 processing time: 3283.82 seconds
+Time Taken to process Maximizer1: 1634.555237 seconds
+Processing time for maximizer21: 1446.2408316135406 seconds
+Maximizer2 Processing Time: 1613.4450142383575 seconds
+Maximizer3 processing time: 2337.86 seconds
+Maximizer Execution time with multiprocessing: 119.66954255104065 seconds
+Time Taken to process Maximizer1: 1936.782444 seconds
+Processing time for maximizer21: 3137.8945376873016 seconds
+Maximizer2 Processing Time: 3338.920561313629 seconds
+Maximizer3 processing time: 2930.51 seconds
+Maximizer Execution time with multiprocessing: 90.86547088623047 seconds
+Time Taken to process Maximizer1: 1635.616104 seconds
+Processing time for maximizer21: 2862.909471988678 seconds
+Maximizer2 Processing Time: 3024.451032400131 seconds
+Maximizer3 processing time: 2323.70 seconds
