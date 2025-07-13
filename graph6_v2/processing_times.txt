@@ -1,0 +1,10 @@
+Graph processing time: 0.002900 seconds
+Dijkstra processing time: 0.042701 seconds
+Shortest paths processing time: 0.120504 seconds
+Time taken to compute BFS trees: 5.07 seconds
+Time taken to compute BFS trees: 5.10 seconds
+Maximizer Execution time with multiprocessing: 630.179361820221 seconds
+Time Taken to process Maximizer1: 37936.823792 seconds
+Processing time for maximizer21: 44358.99091720581 seconds
+Maximizer2 Processing Time: 45735.94746041298 seconds
+Maximizer3 processing time: 27588.34 seconds

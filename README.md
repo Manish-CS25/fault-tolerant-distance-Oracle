@@ -1,47 +1,85 @@
-# Fault-Tolerant Distance Oracle for Weighted Graphs
+Implementation of Nearly Optimal Fault Tolerant Distance Oracle
+This repository contains the implementation of a nearly optimal (f)-fault tolerant distance oracle for undirected weighted graphs, based on the work by Dey and Gupta (2024). The code was developed as part of the thesis "Implementation of Nearly Optimal Fault Tolerant Distance Oracle" by Manish Kumar Bairwa (23210055) at the Indian Institute of Technology Gandhinagar, defended on June 17, 2025.
+Overview
+The fault-tolerant distance oracle efficiently answers shortest path queries in the presence of up to (f) edge failures. It builds on theoretical guarantees with a space complexity of (O(f^4 n^2 \log^2(n W))) and query time of (O(c^{(f+1)^2} f^{8(f+1)^2} \log^{2(f+1)^2}(n W))), returning paths in ((f+1))-decomposable form. This implementation optimizes preprocessing using multiprocessing and handles edge cases like disconnected graphs.
+Features
 
-## Introduction
+Implements Dey and Gupta’s (2024) fault-tolerant distance oracle.
+Achieves up to 30× preprocessing speedup with 64-thread parallelization.
+Supports robust handling of edge cases (e.g., disconnected graphs, critical faults).
+Evaluated on diverse graph datasets (Watts-Strogatz, Graph Challenge 2017).
+Written in Python 3.10 with NetworkX for graph operations.
 
-We present an f-fault tolerant distance oracle for an undirected weighted graph where each edge has an integral weight from [1 . . . W]. Given a set F of f edges, as well as a source node s and a destination node t, our oracle returns the shortest path from s to t avoiding F in O((c f log(nW))^O(f^2)) time, where c > 1 is a constant. The space complexity of our oracle is O(f^4 n^2 log^2(nW)). For a constant f, our oracle is nearly optimal both in terms of space and time (barring some logarithmic factor).
+Installation
 
-In real-life networks, which can be represented as graphs, determining the distance between any two vertices is often necessary. This problem is commonly known as the “all-pair shortest path” problem in the literature. In the data structure version of this problem, the goal is to preprocess the graph to answer distance queries between any two vertices efficiently.
+Clone the repository:
+git clone https://github.com/yourusername/fault-tolerant-distance-oracle.git
+cd fault-tolerant-distance-oracle
 
-## Abstract
 
-QUERY(s, t): Find the weight of the shortest path from s to t.
-For unweighted graphs, the shortest path between all pairs of vertices can be found using the breadth-first search (BFS) algorithm, and the information can be stored in O(n^2) space. The query time is O(1). In the case of weighted graphs, there is extensive research on all-pair shortest path algorithms [Flo67, War62, Fre76, Dob90, Tak92, Han04, Tak04, Zwi04, Tak05, Cha05, Han06, Cha07, Han08, Cha08, Wil14]. Using the state-of-the-art algorithm, we can construct a data structure of size O(n^2) with O(1) query time.
+Install dependencies:
+pip install -r requirements.txt
 
-However, real-life networks are prone to failures. Thus, we need to find the distance between vertices, avoiding certain edges or vertices, known as faults in the literature. This paper focuses on edge faults. Let’s formally define the problem. We are given an undirected weighted graph G. We can preprocess G and construct some suitable data structures. These data structures are used to answer queries of the form:
 
-QUERY(s, t, F): Find the shortest path (and its weight) from s to t avoiding the edge set F.
+Ensure you have Python 3.10 and a compatible environment (e.g., Ubuntu 22.04 LTS).
+Required packages: networkx, numpy, multiprocessing.
 
-The algorithm that handles the aforementioned query is known as the query algorithm. It utilises the prepared data structures to respond to the query. This combination of data structures and the query algorithm is referred to as a distance oracle in the literature. Since we are dealing with faults, our oracle is known as f-fault-tolerant distance oracle when |F| ≤ f. A fault-tolerant distance oracle is evaluated based on its size, query time (the time required to answer a query), and the number of faults it can handle, i.e., the maximum size of F. In a naive approach, we could store all distances, avoiding all possible faults and return the distance upon query. However, this would consume significant space, albeit with a small query time. Hence, the primary research challenge in this field is to reduce the space while not significantly increasing the query time.
 
-## Relevant Results
+Verify setup:
+python -c "import networkx; print(networkx.__version__)"
 
-We summarise relevant results in this area in Table 1. When f = 1, the oracle presented in [DTCR08] is optimal. For f = 2, Duan and Pettie [DP09] designed a nearly optimal distance oracle (barring some polylog n factor). However, for f > 2, our understanding of this problem is limited. The results can be categorised into two groups: those with high query time but low space [WY13, vdBS19, KS23], and those with low query time but high space [DR22]. An important question in this field is to develop an oracle that minimises both space (as in [KS23]) and query time (as in [DR22]). In fact, this question is explicitly raised in [DR22], and we quote it here (with minor notation changes).
 
-| Faults | Space | Query time | Remarks | Reference |
-|--------|-------|------------|---------|-----------|
-| 1      | ˜O(n^2) | O(1) | ˜O hides polylog n factor. | [DTCR08] |
-| 2      | ˜O(n^2) | O(log n) | - | [DP09] |
-| f      | ˜O(n^3−α) | ˜O(n^2−(1−α)/f) | α ∈ [0, 1] when the preprocessing time is O(W n^3.376−α) and edge weights are integral and in the range [−W . . . W]. | [WY13] |
-| f      | ˜O(W n^2+α) | O(W n^2−α f^2 + W n f^ω) | α ∈ [0, 1], edge weights are integral and in the range [−W . . . W] and ω is the matrix multiplication exponent [CW87, Sto10, Wil12, Gal14, AW21] | [vdBS19] |
-| f      | O(n^4) | O(f^O(f)) | - | [DR22] |
-| f      | O(n^2) | ˜O(n f) | Edge weights are in the range [1 . . . W] | [KS23] |
 
-## Example Usage
+Usage
+Example: Running the Oracle
 
-Here is an example of how to use the `QUERY2` function:
+Prepare a graph file (e.g., graph.edgelist in NetworkX format).
+Run the main script:python main.py --graph graph.edgelist --f 2 --source 0 --target 10
 
-```python
-# Import necessary functions and classes
-from your_module import Edge, get_edge_weight, QUERY2
 
-# Define the graph and edges
-G = ...  # Your graph definition here
-F3 = [Edge(6, 3, get_edge_weight(G, 6, 3)), Edge(4, 9, get_edge_weight(G, 4, 9))]
+--f: Number of edge failures to tolerate.
+--source and --target: Vertices for the query.
+Output: Shortest path distance avoiding up to (f) failures.
 
-# Query the graph
-ans = QUERY2(6, 9, 3, F3)
-print(ans)
+
+
+Preprocessing
+To precompute the oracle data structures:
+python preprocess.py --graph graph.edgelist --f 2 --output oracle_data.pkl
+
+
+Uses 64-thread parallelization for speedup.
+Saves precomputed maximizers and jump sequences to oracle_data.pkl.
+
+Querying
+Load precomputed data and query:
+python query.py --oracle oracle_data.pkl --source 0 --target 10 --faults edge1,edge2
+
+
+--faults: List of edges to avoid (format: "u-v" for edge between u and v).
+
+Datasets
+
+Watts-Strogatz: Small-world networks ((n = 47, 100, 150, 200)).
+Graph Challenge 2017: Stochastic block partitioning graphs ((n = 100, 500)).
+Sample datasets are included in the data/ directory.
+
+Performance
+
+Space Usage: 5.75 MB ((n=47, f=1)) to 675 MB ((n=500, f=1)).
+Query Time: 0.19 ms ((n=47, f=1)) to 210.97 ms ((n=100, f=2)).
+Preprocessing Time: 300 s ((n=47, f=1)) to 372,240 s ((n=47, f=3)).
+
+Thesis and Documentation
+
+Full details are available in the thesis: Thesis PDF (link to be updated).
+Refer to docs/ for additional notes on algorithms and edge case handling.
+
+Contributing
+Contributions are welcome! Please open an issue or submit a pull request for bugs, enhancements, or optimizations.
+License
+This project is licensed under the MIT License - see the LICENSE file for details.
+Acknowledgments
+
+Inspired by Dey, D., and Gupta, M. (2024). Nearly Optimal Fault Tolerant Distance Oracle. arXiv:2402.12832.
+Supported by IIT Gandhinagar and the thesis advisor.

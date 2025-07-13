@@ -1,0 +1,3 @@
+maximizer2 processing time -- 19.25 hrs
+maximizer21 processing time -- 20 hrs
+maximizer3 processing time -- 42.51 hrs

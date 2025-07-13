@@ -1,0 +1,8 @@
+Graph processing time: 0.003643 seconds
+Dijkstra processing time: 0.074359 seconds
+Shortest paths processing time: 0.143098 seconds
+Maximizer Execution time with multiprocessing: 1960.418961763382 seconds
+Time Taken to process Maximizer1: 175850.058804 seconds
+Maximizer2 Processing Time: 158553.45394206047 seconds
+Processing time for maximizer21: 158375.6031241417 seconds
+Maximizer3 Processing Time: 302964.18 seconds
